@@ -58,7 +58,7 @@ sudo make install
 cd ~
 git clone git@github.com:cBioLab/BiORAM-SGX.git
 cd BiORAM-SGX
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/BiORAM-SGX/sample_libcrypto
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/BiORAM-SGX/sample_libcrypto
 ./bootstrap
 ./configure --with-openssldir=/opt/openssl/1.1.0i
 make
@@ -68,7 +68,14 @@ mkdir upload_data
 mkdir ORAM_table
 ```
 
-
++ You should get your service provider id(SPID) and Attestation Report Root CA Certificate(Intel_SGX_Attestation_RootCA.pem).
+  + If you get SPID, write it on setting. Check [HERE](https://github.com/intel/sgx-ra-sample#building-the-sample) for detail.
+  + Intel_SGX_Attestation_RootCA.pem can get following way.
+  ```
+  cd ~/BiORAM-SGX/
+  wget https://certificates.trustedservices.intel.com/Intel_SGX_Attestation_RootCA.pem
+  ```
+  
 + If you have any problem, you should check [sgx-ra-sample](https://github.com/intel/sgx-ra-sample).
 
 
@@ -102,17 +109,17 @@ $ Are you sure to register this userID and password[y/n]?: y
 ```
 cd ~/BiORAM-SGX/dataowner_data/
 wget ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
-gunzip -k ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
+gunzip ALL.chr22.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
 ```
 
 ## [Data Owner] Split and Encrypt genome data
 ```
 cd ~/BiORAM-SGX/dataowner_data/
-# Split genome data by nation.
+# Split genome data by nation. Use "xlrd" library.
 python SplitVCFData_nation.py 22
 # Split nation genome data by each size(102000[byte]: about 100000 byte + padding).
-python SplitVCFData_size.py ~/BiORAM-SGX/dataowner_data/ ~/BiORAM-SGX/dataowner_data/chr22_GWD/ 22 GWD 100000 2000
-python SplitVCFData_size.py ~/BiORAM-SGX/dataowner_data/ ~/BiORAM-SGX/dataowner_data/chr22_JPT/ 22 JPT 100000 2000
+python3 SplitVCFData_size.py ~/BiORAM-SGX/dataowner_data/ ~/BiORAM-SGX/dataowner_data/chr22_GWD/ 22 GWD 100000 2000
+python3 SplitVCFData_size.py ~/BiORAM-SGX/dataowner_data/ ~/BiORAM-SGX/dataowner_data/chr22_JPT/ 22 JPT 100000 2000
 # Encrypt splitted nation genome data. We use Intel SGX for encryption, but it is not necessary for Data Owner to use Intel SGX in case Data Onwer encrypt them using AES-GCM.
 cd EncryptAES_SGX
 make
@@ -133,8 +140,8 @@ Above commands take about 10 minutes because genome data of chromosome 22 is hug
 cd ~/BiORAM-SGX/dataowner_data/
 # short size of genome data.
 gunzip *.gz
-python SplitVCFData_size.py ~/BiORAM-SGX/dataowner_data/ ~/BiORAM-SGX/dataowner_data/chr22_GWD/ 22 GWD 100000 2000
-python SplitVCFData_size.py ~/BiORAM-SGX/dataowner_data/ ~/BiORAM-SGX/dataowner_data/chr22_JPT/ 22 JPT 100000 2000
+python3 SplitVCFData_size.py ~/BiORAM-SGX/dataowner_data/ ~/BiORAM-SGX/dataowner_data/chr22_GWD/ 22 GWD 100000 2000
+python3 SplitVCFData_size.py ~/BiORAM-SGX/dataowner_data/ ~/BiORAM-SGX/dataowner_data/chr22_JPT/ 22 JPT 100000 2000
 cd EncryptAES_SGX
 make
 ./app ~/BiORAM-SGX/dataowner_data/chr22_GWD/ 22 GWD 102000
@@ -189,11 +196,12 @@ Client sample .js codes are as follows.
 + fisher.js: sample code to execute fisher's exact test.
 + LR.js:     sample code to execute logistic regression(100 positions).
 + PCA.js:    sample code to execute PCA(100 positions -> 2 dimension).
-+ LR_PCA.js: execute LR(100 positions) -> select 50 positions that have high relation between GWD and JPT -> PCA(50 positions -> 2 dimension) -> save result as file. It can visualize as follows.
++ LR_PCA.js: execute LR(10 positions) -> select 5 positions that have high relation between GWD and JPT -> PCA(5 positions -> 2 dimension) -> save result as file.  
+It can visualize as follows. Because sample positions are quite a few, classification is not proper.(If you check proper classification, see [demo](https://github.com/cBioLab/BiORAM-SGX#demo).) 
   ```
-	cd ~/BiORAM-SGX/client_data/
-	python3 Visualize_data.py
-	```
+  cd ~/BiORAM-SGX/client_data/
+  python Visualize_data.py
+  ```
 
 
 
@@ -454,6 +462,11 @@ Licenses of external libraries are listed as follows.
 + [OpenSSL](https://www.openssl.org/source/license.html)
 + [SQLite](https://www.sqlite.org/copyright.html)
 + [tiny-js](https://github.com/gfwilliams/tiny-js/blob/master/LICENSE)
+
+
+
+# Acknowledgement
+During publication, we would like to thank [xxxxxx] for discussing and lending his expertise about Intel SGX.
 
 
 
