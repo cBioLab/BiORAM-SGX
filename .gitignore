@@ -12,24 +12,20 @@ win32/agent_win32.h
 ### ↓↓↓ Add by IWATA ↓↓↓ ###
 .deps/
 autom4te.cache/
-testcode/
 config.h
 config.status
 mrsigner.sh
 run-SGXserver
 run-client
-run-server
 stamp-h1
 /Makefile
 Enclave/Makefile
 testdb
-dataowner_data/ReduceData.py
 dataowner_data/*.vcf
 dataowner_data/chr22_GWD/
 dataowner_data/chr22_JPT/
 SGXserver_data/
 client_data/CreatePositionList.py
-client_data/20130606_sample_info_.xlsx
 *.sh
 *.log
 *.o
@@ -38,9 +34,5 @@ client_data/20130606_sample_info_.xlsx
 *.init
 *.data
 
-settings.cbio
 Intel_SGX_Attestation_RootCA.pem
-client_data/chrY_JPT_AES.key
-client_data/sample.key
-client_data/result.png
 client_data/script/

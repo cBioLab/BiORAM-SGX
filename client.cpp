@@ -393,22 +393,16 @@ int main(int argc, char *argv[])
   
   // Input userID, password.
   cout << "Input your user ID: ";
-  // userID = "iwata";  cout << userID << endl;
   cin >> userID;
 
   cout << "Input your ID's password: ";
-  // passwd = "iwata";  cout << passwd << endl;
   cin >> passwd;
 
   cout << "(If you do not have key, push ENTER only.)" << endl;
   cout << "Input your SK filename(): ";
-  // key_filename = "./dataowner_data/chr22_GWD/AES_SK.key";  cout << key_filename << endl;
-  // key_filename = "";  cout << key_filename << endl;
   cin.ignore();  getline(cin, key_filename);
     
   cout << "Input your JavaScript code: ";
-  // js_filename = "./client_data/script/samplecode.js";  cout << js_filename << endl;
-  // js_filename = "./client_data/PCA.js";  cout << js_filename << endl;
   cin >> js_filename;
   
 

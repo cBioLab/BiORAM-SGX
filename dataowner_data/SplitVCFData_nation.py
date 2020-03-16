@@ -86,8 +86,6 @@ if __name__ == "__main__":
 
     # 変数定義．
     chrID           = argvs[1]
-    # input_filepath  = "/mnt/sdb1/iwata/vcf_init/"
-    # output_filepath = "/mnt/sdb1/iwata/vcf_nation/"
     input_filepath  = "./"
     output_filepath = "./"
 

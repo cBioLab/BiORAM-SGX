@@ -36,8 +36,6 @@ def CreateDirectory(dir_name):
 
 
 if __name__ == "__main__":
-    # THRES_FILE_SIZE = 1000000
-    # MAX_FILE_SIZE   = THRES_FILE_SIZE + 1000
     
     argvs = sys.argv
     argc  = len(argvs)
