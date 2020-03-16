@@ -62,7 +62,12 @@ ENCLAVE_KEY=$(ENCLAVE)_private.pem
 ## AM_CPPFLAGS += 
 ## AM_CXXFLAGS +=
 
-AM_CPPFLAGS += -I..
+# IWATA
+# AM_CPPFLAGS = -I$(SGXSDK_INCDIR) -I$(SGXSDK_INCDIR)/tlibc -I$(SGXSDK_INCDIR)/libcxx -I..
+AM_CPPFLAGS += -I$(SGXSDK_INCDIR)/libcxx -I..
+# AM_CXXFLAGS = -nostdinc++ -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector -nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector
+AM_CXXFLAGS += -std=c++11
+## AM_CPPFLAGS += -I..
 
 ## Override LIBS coming from the app configuration, as they don't
 ## apply to the enclave.
@@ -79,9 +84,11 @@ CLEANFILES+= $(ENCLAVE)_t.c $(ENCLAVE)_t.h
 ## files. You can't use the $(ENCLAVE) variable in the build
 ## target name (i.e., $(ENCLAVE)_SOURCES will not work).
 
+# IWATA
+# Enclave_SOURCES = Enclave_t.c Enclave_t.h Enclave.cpp \
+#	$(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 Enclave_SOURCES = Enclave_t.c Enclave_t.h Enclave.cpp \
-	$(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
-
+	$(ENCLAVE_KEY) $(ENCLAVE_CONFIG) MLfunc_SGX.cpp ObliviousRAM_SGX.cpp SGX_Sort.cpp SGX_Math.cpp
 
 ## Add additional linker flags to AM_LDFLAGS here. Don't put 
 ## libraries flags here (see below).

@@ -1,0 +1,5 @@
+# ENC_VCF_TOPDIR = /mnt/sdc/iwata/vcf_split/
+# ORAMTREE_TOPDIR = /mnt/sdc/iwata/ORAM_table/
+
+ENC_VCF_TOPDIR = ./SGXserver_data/upload_data/
+ORAMTREE_TOPDIR = ./SGXserver_data/ORAM_table/

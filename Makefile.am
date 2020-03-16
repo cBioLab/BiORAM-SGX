@@ -53,6 +53,10 @@ AM_CXXFLAGS = -std=c++11
 
 AM_CPPFLAGS += -fno-builtin-memset @OPENSSL_CPPFLAGS@
 
+# IWATA
+DEFAULT_INCLUDES = -I.@am__isrc@ -Isample_libcrypto -I$(SGXSDK)/include
+
+
 ## Additional targets to remove with 'make clean'. You must list
 ## any edger8r generated files here.
 
@@ -62,9 +66,10 @@ CLEANFILES = Enclave_u.c Enclave_u.h Enclave.edl Enclave.signed.so \
 
 ## The build target
 
-server: sp
+# server: sp
 
-bin_PROGRAMS = client sp mrsigner
+# bin_PROGRAMS = client sp mrsigner
+bin_PROGRAMS = client SGXserver mrsigner
 
 ## You can't use $(wildcard ...) with automake so all source files 
 ## have to be explicitly listed.
@@ -74,21 +79,28 @@ common = byteorder.c common.cpp crypto.c hexutil.c fileio.c base64.c \
 
 ## client 
 
-client_SOURCES = client.cpp sgx_detect_linux.c sgx_stub.c quote_size.c \
-	$(common)
-nodist_client_SOURCES = Enclave_u.c Enclave_u.h
-EXTRA_client_DEPENDENCIES = Enclave.signed.so
+# IWATA
+# client_SOURCES = client.cpp sgx_detect_linux.c sgx_stub.c quote_size.c \
+#	$(common)
+SGXserver_SOURCES = SGXserver.cpp sgx_detect_linux.c sgx_stub.c quote_size.c \
+	$(common) RA_SGXserver.cpp SGX_Fileio.cpp SGX_Measurement.cpp SGX_Print.cpp
+nodist_SGXserver_SOURCES = Enclave_u.c Enclave_u.h
+EXTRA_SGXserver_DEPENDENCIES = Enclave.signed.so
 BUILT_SOURCES = Enclave_u.c Enclave_u.h
 
-client_LDFLAGS= $(AM_LDFLAGS) @OPENSSL_LDFLAGS@
+SGXserver_LDFLAGS= $(AM_LDFLAGS) @OPENSSL_LDFLAGS@
 
 ## sp
 
-sp_SOURCES = sp.cpp agent_wget.cpp iasrequest.cpp enclave_verify.c $(common)
+# IWATA
+# sp_SOURCES = sp.cpp agent_wget.cpp iasrequest.cpp enclave_verify.c $(common)
+client_SOURCES = client.cpp agent_wget.cpp iasrequest.cpp enclave_verify.c $(common) \
+	RA_client.cpp
 BUILT_SOURCES += policy
-EXTRA_sp_DEPENDENCIES = Enclave.signed.so
+EXTRA_client_DEPENDENCIES = Enclave.signed.so
 if AGENT_CURL
-sp_SOURCES += agent_curl.cpp
+# sp_SOURCES += agent_curl.cpp
+client_SOURCES += agent_curl.cpp
 endif
 
 ## mrsigner (helper app)
@@ -101,7 +113,7 @@ policy: mrsigner policy.in Enclave.signed.so
 	sed -e "s^@MRSIGNER@^`./mrsigner.sh enclave_sigstruct_raw`^" policy.in > policy
 	rm -f enclave_sigstruct_raw
 
-sp_LDFLAGS= $(AM_LDFLAGS) @OPENSSL_LDFLAGS@ @CURL_LDFLAGS@
+client_LDFLAGS= $(AM_LDFLAGS) @OPENSSL_LDFLAGS@ @CURL_LDFLAGS@
 mrsigner_LDFLAGS= $(AM_LDFLAGS) @OPENSSL_LDFLAGS@
 
 ## Library flags. At minimum, an Intel SGX application will need:
@@ -116,10 +128,14 @@ mrsigner_LDFLAGS= $(AM_LDFLAGS) @OPENSSL_LDFLAGS@
 ## Use the variables, not the actual library names to ensure these
 ## targets work on simulation builds.
 
-client_LDADD=-l$(SGX_URTS_LIB) -lsgx_ukey_exchange -l$(SGX_UAE_SERVICE_LIB) \
-	-lcrypto -l:libsgx_capable.a -lpthread -ldl
+# IWATA
+# client_LDADD=-l$(SGX_URTS_LIB) -lsgx_ukey_exchange -l$(SGX_UAE_SERVICE_LIB) \
+#	-lcrypto -l:libsgx_capable.a -lpthread -ldl
+SGXserver_LDADD=-l$(SGX_URTS_LIB) -lsgx_ukey_exchange -l$(SGX_UAE_SERVICE_LIB) \
+	-lcrypto -l:libsgx_capable.a -lpthread -ldl -lsqlite3
 
 mrsigner_LDADD=-lcrypto
 
-sp_LDADD=-lcrypto @CURL_LIBS@
-
+# IWATA
+# sp_LDADD=-lcrypto @CURL_LIBS@
+client_LDADD=-lcrypto @CURL_LIBS@ -lsample_libcrypto -Lsample_libcrypto

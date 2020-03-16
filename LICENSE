@@ -1,125 +1,37 @@
-This license governs use of the accompanying software. By installing or 
-copying all or any part of the software components in this package, you 
-(“you” or “Licensee”) agree to the terms of this agreement. Do 
-not install or copy the software until you have carefully read and 
-agreed to the following terms and conditions. If you do not agree to the 
-terms of this agreement, promptly return the software to Intel 
-Corporation (“Intel”). 
+Copyright (c) 2020 IWATA Daiki
 
-1. Definitions: 
+Permission is hereby granted, free of charge, to any person obtaining 
+a copy of this software and associated documentation files (the "Software"), 
+to deal in the Software without restriction, including without limitation 
+the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+and/or sell copies of the Software, and to permit persons to whom 
+the Software is furnished to do so, subject to the following conditions:
 
-A. “Materials" are defined as the software (including the 
-Redistributables and Sample Source as defined herein), documentation, 
-and other materials, including any updates and upgrade thereto, that are 
-provided to you under this Agreement. 
+The above copyright notice and this permission notice shall be included 
+in all copies or substantial portions of the Software.
 
-B. "Redistributables" are the files listed in the "redist.txt" file that 
-is included in the Materials or are otherwise clearly identified as 
-redistributable files by Intel. 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
+IN THE SOFTWARE.
 
-C. “Sample Source” is the source code file(s) that: (i) 
-demonstrate(s) certain functions for particular purposes; (ii) are 
-identified as sample source code; and (iii) are provided hereunder in 
-source code form. 
+-----------------------------------------------------------------------------
 
-D. “Intel’s Licensed Patent Claims” means those claims of 
-Intel’s patents that (a) are infringed by the Sample Source or 
-Redistributables, alone and not in combination, in their unmodified 
-form, as furnished by Intel to Licensee and (b) Intel has the right to 
-license. 
+以下に定める条件に従い、本ソフトウェアおよび関連文書のファイル（以下「ソフトウェア」）
+の複製を取得するすべての人に対し、ソフトウェアを無制限に扱うことを無償で許可します。
+これには、ソフトウェアの複製を使用、複写、変更、結合、掲載、頒布、サブライセンス、
+および/または販売する権利、およびソフトウェアを提供する相手に同じことを許可する権利も
+無制限に含まれます。
 
-2. License Grant: Subject to all of the terms and conditions of this 
-Agreement: 
+上記の著作権表示および本許諾表示を、ソフトウェアのすべての複製または重要な部分に
+記載するものとします。
 
-A. Intel grants to you a non-exclusive, non-assignable, copyright 
-license to use the Material for your internal development purposes only. 
-
-B. Intel grants to you a non-exclusive, non-assignable copyright license 
-to reproduce the Sample Source, prepare derivative works of the Sample 
-Source and distribute the Sample Source or any derivative works thereof 
-that you create, as part of the product or application you develop using 
-the Materials. 
-
-C. Intel grants to you a non-exclusive, non-assignable copyright license 
-to distribute the Redistributables, or any portions thereof, as part of 
-the product or application you develop using the Materials. 
-
-D. Intel grants Licensee a non-transferable, non-exclusive, worldwide, 
-non-sublicenseable license under Intel’s Licensed Patent Claims to 
-make, use, sell, and import the Sample Source and the Redistributables. 
-
-3. Conditions and Limitations: 
-
-A. This license does not grant you any rights to use Intel’s name, 
-logo or trademarks. 
-
-B. Title to the Materials and all copies thereof remain with Intel. The 
-Materials are copyrighted and are protected by United States copyright 
-laws. You will not remove any copyright notice from the Materials. You 
-agree to prevent any unauthorized copying of the Materials. Except as 
-expressly provided herein, Intel does not grant any express or implied 
-right to you under Intel patents, copyrights, trademarks, or trade 
-secret information. 
-
-C. You may NOT: (i) use or copy the Materials except as provided in this 
-Agreement; (ii) rent or lease the Materials to any third party; (iii) 
-assign this Agreement or transfer the Materials without the express 
-written consent of Intel; (iv) modify, adapt, or translate the Materials 
-in whole or in part except as provided in this Agreement; (v) reverse 
-engineer, decompile, or disassemble the Materials not provided to you in 
-source code form; or (vii) distribute, sublicense or transfer the source 
-code form of any components of the Materials and derivatives thereof to 
-any third party except as provided in this Agreement. 
-
-D. Platform Limitation - The licenses granted in section 2 extend only 
-to the software or derivative works that you create that run directly on 
-a Microsoft Windows operating system product, Microsoft run-time 
-technology (such as the .NET Framework or Silverlight), or Microsoft 
-application platform (such as Microsoft Office or Microsoft Dynamics). 
-
-4. No Warranty: 
-
-THE MATERIALS ARE PROVIDED “AS IS”. INTEL DISCLAIMS ALL EXPRESS OR 
-IMPLIED WARRANTIES WITH RESPECT TO THEM, INCLUDING ANY IMPLIED 
-WARRANTIES OF MERCHANTABILITY, NON-INFRINGEMENT, AND FITNESS FOR ANY 
-PARTICULAR PURPOSE. 
-
-5. LIMITATION OF LIABILITY: NEITHER INTEL NOR ITS SUPPLIERS SHALL BE 
-LIABLE FOR ANY DAMAGES WHATSOEVER (INCLUDING, WITHOUT LIMITATION, 
-DAMAGES FOR LOSS OF BUSINESS PROFITS, BUSINESS INTERRUPTION, LOSS OF 
-BUSINESS INFORMATION, OR OTHER LOSS) ARISING OUT OF THE USE OF OR 
-INABILITY TO USE THE SOFTWARE, EVEN IF INTEL HAS BEEN ADVISED OF THE 
-POSSIBILITY OF SUCH DAMAGES. BECAUSE SOME JURISDICTIONS PROHIBIT THE 
-EXCLUSION OR LIMITATION OF LIABILITY FOR CONSEQUENTIAL OR INCIDENTAL 
-DAMAGES, THE ABOVE LIMITATION MAY NOT APPLY TO YOU. 
-
-6. USER SUBMISSIONS: You agree that any material, information or other 
-communication, including all data, images, sounds, text, and other 
-things embodied therein, you transmit or post to an Intel website or 
-provide to Intel under this Agreement will be considered 
-non-confidential ("Communications"). Intel will have no confidentiality 
-obligations with respect to the Communications. You agree that Intel and 
-its designees will be free to copy, modify, create derivative works, 
-publicly display, disclose, distribute, license and sublicense through 
-multiple tiers of distribution and licensees, incorporate and otherwise 
-use the Communications, including derivative works thereto, for any and 
-all commercial or non-commercial purposes 
-
-7. TERMINATION OF THIS LICENSE: This Agreement becomes effective on the 
-date you accept this Agreement and will continue until terminated as 
-provided for in this Agreement. Intel may terminate this license at any 
-time if you are in breach of any of its terms and conditions. Upon 
-termination, you will immediately return to Intel or destroy the 
-Materials and all copies thereof. 
-
-8. U.S. GOVERNMENT RESTRICTED RIGHTS: The Materials are provided with 
-"RESTRICTED RIGHTS". Use, duplication or disclosure by the Government is 
-subject to restrictions set forth in FAR52.227-14 and DFAR252.227-7013 
-et seq. or its successor. Use of the Materials by the Government 
-constitutes acknowledgment of Intel's rights in them. 
-
-9. APPLICABLE LAWS: Any claim arising under or relating to this 
-Agreement shall be governed by the internal substantive laws of the 
-State of Delaware, without regard to principles of conflict of laws. You 
-may not export the Materials in violation of applicable export laws. 
-
+ソフトウェアは「現状のまま」で、明示であるか暗黙であるかを問わず、
+何らの保証もなく提供されます。ここでいう保証とは、商品性、特定の目的への適合性、
+および権利非侵害についての保証も含みますが、それに限定されるものではありません。 
+作者または著作権者は、契約行為、不法行為、またはそれ以外であろうと、
+ソフトウェアに起因または関連し、あるいはソフトウェアの使用またはその他の扱いによって
+生じる一切の請求、損害、その他の義務について何らの責任も負わないものとします。

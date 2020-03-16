@@ -86,7 +86,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = client$(EXEEXT) sp$(EXEEXT) mrsigner$(EXEEXT)
+bin_PROGRAMS = client$(EXEEXT) SGXserver$(EXEEXT) mrsigner$(EXEEXT)
+# sp_SOURCES += agent_curl.cpp
 @AGENT_CURL_TRUE@am__append_1 = agent_curl.cpp
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -100,17 +101,32 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = mrsigner.sh run-server run-client
+CONFIG_CLEAN_FILES = mrsigner.sh run-SGXserver run-client
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = byteorder.$(OBJEXT) common.$(OBJEXT) crypto.$(OBJEXT) \
 	hexutil.$(OBJEXT) fileio.$(OBJEXT) base64.$(OBJEXT) \
 	msgio.$(OBJEXT) logfile.$(OBJEXT)
-am_client_OBJECTS = client.$(OBJEXT) sgx_detect_linux.$(OBJEXT) \
-	sgx_stub.$(OBJEXT) quote_size.$(OBJEXT) $(am__objects_1)
-nodist_client_OBJECTS = Enclave_u.$(OBJEXT)
-client_OBJECTS = $(am_client_OBJECTS) $(nodist_client_OBJECTS)
+am_SGXserver_OBJECTS = SGXserver.$(OBJEXT) sgx_detect_linux.$(OBJEXT) \
+	sgx_stub.$(OBJEXT) quote_size.$(OBJEXT) $(am__objects_1) \
+	RA_SGXserver.$(OBJEXT) SGX_Fileio.$(OBJEXT) \
+	SGX_Measurement.$(OBJEXT) SGX_Print.$(OBJEXT)
+nodist_SGXserver_OBJECTS = Enclave_u.$(OBJEXT)
+SGXserver_OBJECTS = $(am_SGXserver_OBJECTS) \
+	$(nodist_SGXserver_OBJECTS)
+SGXserver_DEPENDENCIES =
+SGXserver_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(SGXserver_LDFLAGS) $(LDFLAGS) -o $@
+am__client_SOURCES_DIST = client.cpp agent_wget.cpp iasrequest.cpp \
+	enclave_verify.c byteorder.c common.cpp crypto.c hexutil.c \
+	fileio.c base64.c msgio.cpp logfile.c RA_client.cpp \
+	agent_curl.cpp
+@AGENT_CURL_TRUE@am__objects_2 = agent_curl.$(OBJEXT)
+am_client_OBJECTS = client.$(OBJEXT) agent_wget.$(OBJEXT) \
+	iasrequest.$(OBJEXT) enclave_verify.$(OBJEXT) $(am__objects_1) \
+	RA_client.$(OBJEXT) $(am__objects_2)
+client_OBJECTS = $(am_client_OBJECTS)
 client_DEPENDENCIES =
 client_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(client_LDFLAGS) \
 	$(LDFLAGS) -o $@
@@ -120,16 +136,6 @@ mrsigner_OBJECTS = $(am_mrsigner_OBJECTS)
 mrsigner_DEPENDENCIES =
 mrsigner_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(mrsigner_LDFLAGS) $(LDFLAGS) -o $@
-am__sp_SOURCES_DIST = sp.cpp agent_wget.cpp iasrequest.cpp \
-	enclave_verify.c byteorder.c common.cpp crypto.c hexutil.c \
-	fileio.c base64.c msgio.cpp logfile.c agent_curl.cpp
-@AGENT_CURL_TRUE@am__objects_2 = agent_curl.$(OBJEXT)
-am_sp_OBJECTS = sp.$(OBJEXT) agent_wget.$(OBJEXT) iasrequest.$(OBJEXT) \
-	enclave_verify.$(OBJEXT) $(am__objects_1) $(am__objects_2)
-sp_OBJECTS = $(am_sp_OBJECTS)
-sp_DEPENDENCIES =
-sp_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(sp_LDFLAGS) $(LDFLAGS) \
-	-o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -142,7 +148,6 @@ AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
-DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
@@ -171,10 +176,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(client_SOURCES) $(nodist_client_SOURCES) \
-	$(mrsigner_SOURCES) $(sp_SOURCES)
-DIST_SOURCES = $(client_SOURCES) $(mrsigner_SOURCES) \
-	$(am__sp_SOURCES_DIST)
+SOURCES = $(SGXserver_SOURCES) $(nodist_SGXserver_SOURCES) \
+	$(client_SOURCES) $(mrsigner_SOURCES)
+DIST_SOURCES = $(SGXserver_SOURCES) $(am__client_SOURCES_DIST) \
+	$(mrsigner_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -400,30 +405,47 @@ SGXSSL_BINDIR = @SGXSSL_BINDIR@
 @SGX_ENABLED_TRUE@AM_LDFLAGS = -L$(SGXSDK_LIBDIR)
 SUBDIRS = Enclave 
 AM_CXXFLAGS = -std=c++11 
+
+# IWATA
+DEFAULT_INCLUDES = -I.@am__isrc@ -Isample_libcrypto -I$(SGXSDK)/include
 CLEANFILES = Enclave_u.c Enclave_u.h Enclave.edl Enclave.signed.so \
 	policy enclave_sigstruct_raw 
 
 common = byteorder.c common.cpp crypto.c hexutil.c fileio.c base64.c \
 	msgio.cpp logfile.c
 
-client_SOURCES = client.cpp sgx_detect_linux.c sgx_stub.c quote_size.c \
-	$(common)
 
-nodist_client_SOURCES = Enclave_u.c Enclave_u.h
-EXTRA_client_DEPENDENCIES = Enclave.signed.so
+# IWATA
+# client_SOURCES = client.cpp sgx_detect_linux.c sgx_stub.c quote_size.c \
+#	$(common)
+SGXserver_SOURCES = SGXserver.cpp sgx_detect_linux.c sgx_stub.c quote_size.c \
+	$(common) RA_SGXserver.cpp SGX_Fileio.cpp SGX_Measurement.cpp SGX_Print.cpp
+
+nodist_SGXserver_SOURCES = Enclave_u.c Enclave_u.h
+EXTRA_SGXserver_DEPENDENCIES = Enclave.signed.so
 BUILT_SOURCES = Enclave_u.c Enclave_u.h policy
-client_LDFLAGS = $(AM_LDFLAGS) @OPENSSL_LDFLAGS@
-sp_SOURCES = sp.cpp agent_wget.cpp iasrequest.cpp enclave_verify.c \
-	$(common) $(am__append_1)
-EXTRA_sp_DEPENDENCIES = Enclave.signed.so
+SGXserver_LDFLAGS = $(AM_LDFLAGS) @OPENSSL_LDFLAGS@
+
+# IWATA
+# sp_SOURCES = sp.cpp agent_wget.cpp iasrequest.cpp enclave_verify.c $(common)
+client_SOURCES = client.cpp agent_wget.cpp iasrequest.cpp \
+	enclave_verify.c $(common) RA_client.cpp $(am__append_1)
+EXTRA_client_DEPENDENCIES = Enclave.signed.so
 mrsigner_SOURCES = mrsigner.cpp crypto.c hexutil.c
-sp_LDFLAGS = $(AM_LDFLAGS) @OPENSSL_LDFLAGS@ @CURL_LDFLAGS@
+client_LDFLAGS = $(AM_LDFLAGS) @OPENSSL_LDFLAGS@ @CURL_LDFLAGS@
 mrsigner_LDFLAGS = $(AM_LDFLAGS) @OPENSSL_LDFLAGS@
-client_LDADD = -l$(SGX_URTS_LIB) -lsgx_ukey_exchange -l$(SGX_UAE_SERVICE_LIB) \
-	-lcrypto -l:libsgx_capable.a -lpthread -ldl
+
+# IWATA
+# client_LDADD=-l$(SGX_URTS_LIB) -lsgx_ukey_exchange -l$(SGX_UAE_SERVICE_LIB) \
+#	-lcrypto -l:libsgx_capable.a -lpthread -ldl
+SGXserver_LDADD = -l$(SGX_URTS_LIB) -lsgx_ukey_exchange -l$(SGX_UAE_SERVICE_LIB) \
+	-lcrypto -l:libsgx_capable.a -lpthread -ldl -lsqlite3
 
 mrsigner_LDADD = -lcrypto
-sp_LDADD = -lcrypto @CURL_LIBS@
+
+# IWATA
+# sp_LDADD=-lcrypto @CURL_LIBS@
+client_LDADD = -lcrypto @CURL_LIBS@ -lsample_libcrypto -Lsample_libcrypto
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -480,7 +502,7 @@ distclean-hdr:
 	-rm -f config.h stamp-h1
 mrsigner.sh: $(top_builddir)/config.status $(srcdir)/mrsigner.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
-run-server: $(top_builddir)/config.status $(srcdir)/run.in
+run-SGXserver: $(top_builddir)/config.status $(srcdir)/run.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 run-client: $(top_builddir)/config.status $(srcdir)/run.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -527,6 +549,10 @@ uninstall-binPROGRAMS:
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
+SGXserver$(EXEEXT): $(SGXserver_OBJECTS) $(SGXserver_DEPENDENCIES) $(EXTRA_SGXserver_DEPENDENCIES) 
+	@rm -f SGXserver$(EXEEXT)
+	$(AM_V_CXXLD)$(SGXserver_LINK) $(SGXserver_OBJECTS) $(SGXserver_LDADD) $(LIBS)
+
 client$(EXEEXT): $(client_OBJECTS) $(client_DEPENDENCIES) $(EXTRA_client_DEPENDENCIES) 
 	@rm -f client$(EXEEXT)
 	$(AM_V_CXXLD)$(client_LINK) $(client_OBJECTS) $(client_LDADD) $(LIBS)
@@ -535,10 +561,6 @@ mrsigner$(EXEEXT): $(mrsigner_OBJECTS) $(mrsigner_DEPENDENCIES) $(EXTRA_mrsigner
 	@rm -f mrsigner$(EXEEXT)
 	$(AM_V_CXXLD)$(mrsigner_LINK) $(mrsigner_OBJECTS) $(mrsigner_LDADD) $(LIBS)
 
-sp$(EXEEXT): $(sp_OBJECTS) $(sp_DEPENDENCIES) $(EXTRA_sp_DEPENDENCIES) 
-	@rm -f sp$(EXEEXT)
-	$(AM_V_CXXLD)$(sp_LINK) $(sp_OBJECTS) $(sp_LDADD) $(LIBS)
-
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -546,6 +568,12 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Enclave_u.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RA_SGXserver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RA_client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SGX_Fileio.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SGX_Measurement.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SGX_Print.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SGXserver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/agent_curl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/agent_wget.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/base64.Po@am__quote@
@@ -563,7 +591,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quote_size.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sgx_detect_linux.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sgx_stub.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sp.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1036,8 +1063,6 @@ Enclave.signed.so: Enclave/Enclave.signed.so
 
 Enclave/Enclave.signed.so:
 	make -C Enclave
-
-server: sp
 
 policy: mrsigner policy.in Enclave.signed.so
 	$(SGX_SIGN) dump -cssfile enclave_sigstruct_raw -dumpfile /dev/null -enclave Enclave.signed.so

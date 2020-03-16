@@ -364,7 +364,8 @@ again:
 			perror("send");
 			return;
 		}
-		fwrite(wbuffer.c_str(), 1, bsent, stdout);
+		// IWATA add(erase).
+		// fwrite(wbuffer.c_str(), 1, bsent, stdout);
 
 		if ( bsent == len ) {
 			wbuffer.clear();
@@ -488,7 +489,7 @@ void send_msg_partial(void *src, size_t sz) {
 
 void send_msg(void *src, size_t sz)
 {
-	if (sz) print_hexstring(stdout, src, sz);
+        if (sz) print_hexstring(stdout, src, sz);
 	printf("\n");
 #ifndef _WIN32
 	/* As above */

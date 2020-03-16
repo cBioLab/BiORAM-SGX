@@ -107,16 +107,16 @@ fi
 # Execute
 #----------------------------------------------------------------------------
 
-if [ "$PROG" = "run-client" ]
+if [ "$PROG" = "run-SGXserver" ]
 then
-	./client \
+	./SGXserver \
 		-s $SPID \
 		$cl_nonce $cl_pse \
 		$flag_linkable $flag_debug $flag_verbose \
 		"$@"
-elif [ "$PROG" = "run-server" ]
+elif [ "$PROG" = "run-client" ]
 then
-	./sp \
+	./client \
 		-s $SPID \
 		-i $IAS_PRIMARY_SUBSCRIPTION_KEY \
 		-j $IAS_SECONDARY_SUBSCRIPTION_KEY \
@@ -129,7 +129,7 @@ then
                 $sp_production $flag_no_debug_enclave \
 		"$@" 
 else
-	echo "$PROG: unrecognized instance (expected run-client or run-server)" >&2
+	echo "$PROG: unrecognized instance (expected run-client or run-SGXserver)" >&2
 	exit 1
 fi
 

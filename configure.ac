@@ -120,11 +120,11 @@ dnl Write our configuration
 dnl ----------------------------------------------------------------------
 AC_CONFIG_FILES([
 	mrsigner.sh
-	run-server:run.in
+	run-SGXserver:run.in
 	run-client:run.in
 	Makefile
 	Enclave/Makefile
-],[chmod -f 755 run-client run-server mrsigner.sh])
+],[chmod -f 755 run-client run-SGXserver mrsigner.sh])
 
 AC_OUTPUT
 

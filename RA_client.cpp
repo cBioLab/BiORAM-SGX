@@ -1,107 +1,22 @@
-/*
-
-Copyright 2019 Intel Corporation
-
-This software and the related documents are Intel copyrighted materials,
-and your use of them is governed by the express license under which they
-were provided to you (License). Unless the License provides otherwise,
-you may not use, modify, copy, publish, distribute, disclose or transmit
-this software or the related documents without Intel's prior written
-permission.
-
-This software and the related documents are provided as is, with no
-express or implied warranties, other than those that are expressly stated
-in the License.
-
-*/
+/*!
+ *
+ * RA_client.cpp
+ *
+ * Copyright (c) 2020 IWATA Daiki
+ *
+ * This software is released under the MIT License.
+ * see http://opensource.org/licenses/mit-license
+ *
+ * Some function are released from Intel Corporation.
+ * LIENSE: https://github.com/intel/sgx-ra-sample/blob/master/LICENSE
+ */
 
 
-#ifndef _WIN32
-#include "config.h"
-#endif
-
-#include <stdlib.h>
-#include <limits.h>
-#include <stdio.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <sys/types.h>
-#ifdef _WIN32
-#include <intrin.h>
-#include <openssl/applink.c>
-#include "win32/getopt.h"
-#else
-#include <signal.h>
-#include <getopt.h>
-#include <unistd.h>
-#endif
-#include <sgx_key_exchange.h>
-#include <sgx_report.h>
-#include <openssl/evp.h>
-#include <openssl/pem.h>
+#include "RA_client.hpp"
 #include "json.hpp"
-#include "common.h"
-#include "hexutil.h"
-#include "fileio.h"
-#include "crypto.h"
-#include "byteorder.h"
-#include "msgio.h"
-#include "protocol.h"
-#include "base64.h"
-#include "iasrequest.h"
-#include "logfile.h"
-#include "settings.h"
-#include "enclave_verify.h"
 
 using namespace json;
-using namespace std;
 
-#include <map>
-#include <string>
-#include <iostream>
-#include <algorithm>
-
-#ifdef _WIN32
-#define strdup(x) _strdup(x)
-#endif
-
-static const unsigned char def_service_private_key[32] = {
-	0x90, 0xe7, 0x6c, 0xbb, 0x2d, 0x52, 0xa1, 0xce,
-	0x3b, 0x66, 0xde, 0x11, 0x43, 0x9c, 0x87, 0xec,
-	0x1f, 0x86, 0x6a, 0x3b, 0x65, 0xb6, 0xae, 0xea,
-	0xad, 0x57, 0x34, 0x53, 0xd1, 0x03, 0x8c, 0x01
-};
-
-typedef struct ra_session_struct {
-	unsigned char g_a[64];
-	unsigned char g_b[64];
-	unsigned char kdk[16];
-	unsigned char smk[16];
-	unsigned char sk[16];
-	unsigned char mk[16];
-	unsigned char vk[16];
-} ra_session_t;
-
-typedef struct config_struct {
-	sgx_spid_t spid;
-	unsigned char pri_subscription_key[IAS_SUBSCRIPTION_KEY_SIZE+1];
-	unsigned char sec_subscription_key[IAS_SUBSCRIPTION_KEY_SIZE+1];
-	uint16_t quote_type;
-	EVP_PKEY *service_private_key;
-	char *proxy_server;
-	char *ca_bundle;
-	char *user_agent;
-	unsigned int proxy_port;
-	unsigned char kdk[16];
-	X509_STORE *store;
-	X509 *signing_ca;
-	unsigned int apiver;
-	int strict_trust;
-	sgx_measurement_t req_mrsigner;
-	sgx_prod_id_t req_isv_product_id;
-	sgx_isv_svn_t min_isvsvn;
-	int allow_debug_enclave;
-} config_t;
 
 void usage();
 #ifndef _WIN32
@@ -130,9 +45,12 @@ int get_proxy(char **server, unsigned int *port, const char *url);
 char debug = 0;
 char verbose = 0;
 /* Need a global for the signal handler */
-MsgIO *msgio = NULL;
+MsgIO *msgio = NULL;  // global variable.
 
-int main(int argc, char *argv[])
+
+// IWATA
+// int main(int argc, char *argv[])
+int handshake_RA(int argc, char **argv, ra_session_t& session)
 {
 	char flag_spid = 0;
 	char flag_pubkey = 0;
@@ -228,13 +146,21 @@ int main(int argc, char *argv[])
 			if (!cert_load_file(&config.signing_ca, optarg)) {
 				crypto_perror("cert_load_file");
 				eprintf("%s: could not load IAS Signing Cert CA\n", optarg);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 
 			config.store = cert_init_ca(config.signing_ca);
 			if (config.store == NULL) {
 				eprintf("%s: could not initialize certificate store\n", optarg);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			++flag_ca;
 
@@ -244,7 +170,11 @@ int main(int argc, char *argv[])
 			config.ca_bundle = strdup(optarg);
 			if (config.ca_bundle == NULL) {
 				perror("strdup");
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 
 			break;
@@ -254,7 +184,11 @@ int main(int argc, char *argv[])
 			break;
 		case 'G':
 			ias_list_agents(stdout);
-			return 1;
+
+			// IWATA
+			// return 1;
+			msgio = NULL;
+			return -1;
 
 		case 'I':
 			// Get Size of File, should be IAS_SUBSCRIPTION_KEY_SIZE + EOF
@@ -263,7 +197,11 @@ int main(int argc, char *argv[])
 			if ((offset != IAS_SUBSCRIPTION_KEY_SIZE+1) || (ret == 0)) {
 				eprintf("IAS Primary Subscription Key must be %d-byte hex string.\n",
 					IAS_SUBSCRIPTION_KEY_SIZE);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 
 			// Remove the EOF
@@ -273,7 +211,11 @@ int main(int argc, char *argv[])
 			if (!from_file((unsigned char *)&config.pri_subscription_key, optarg, &offset)) {
 				eprintf("IAS Primary Subscription Key must be %d-byte hex string.\n",
 					IAS_SUBSCRIPTION_KEY_SIZE);
-					return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			break;
 
@@ -284,7 +226,11 @@ int main(int argc, char *argv[])
 			if ((offset != IAS_SUBSCRIPTION_KEY_SIZE+1) || (ret == 0)) {
 				eprintf("IAS Secondary Subscription Key must be %d-byte hex string.\n",
 					IAS_SUBSCRIPTION_KEY_SIZE);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 
 			// Remove the EOF
@@ -294,7 +240,11 @@ int main(int argc, char *argv[])
 			if (!from_file((unsigned char *)&config.sec_subscription_key, optarg, &offset)) {
 				eprintf("IAS Secondary Subscription Key must be %d-byte hex string.\n",
 					IAS_SUBSCRIPTION_KEY_SIZE);
-					return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 
 			break;
@@ -303,7 +253,11 @@ int main(int argc, char *argv[])
 			if (!key_load_file(&config.service_private_key, optarg, KEY_PRIVATE)) {
 				crypto_perror("key_load_file");
 				eprintf("%s: could not load EC private key\n", optarg);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			break;
 
@@ -312,7 +266,10 @@ int main(int argc, char *argv[])
 				optarg, 32)) {
 
 				eprintf("MRSIGNER must be 64-byte hex string\n");
-				return 1;
+
+				// IWATA
+				// return 1;
+				return -1;
 			}
 			++flag_mrsigner;
 			break;
@@ -326,7 +283,11 @@ int main(int argc, char *argv[])
 			val= strtoul(optarg, &eptr, 10);
 			if ( *eptr != '\0' || val > 0xFFFF ) {
 				eprintf("Product Id must be a positive integer <= 65535\n");
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			config.req_isv_product_id= val;
 			++flag_isv_product_id;
@@ -335,7 +296,10 @@ int main(int argc, char *argv[])
 		case 'S':
 			if (!from_hexstring_file((unsigned char *)&config.spid, optarg, 16)) {
 				eprintf("SPID must be 32-byte hex string\n");
-				return 1;
+
+				// IWATA
+				// return 1;
+				return -1;
 			}
 			++flag_spid;
 
@@ -346,7 +310,11 @@ int main(int argc, char *argv[])
 			val= strtoul(optarg, &eptr, 10);
 			if ( *eptr != '\0' || val > (unsigned long) 0xFFFF ) {
 				eprintf("Minimum ISV SVN must be a positive integer <= 65535\n");
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			config.min_isvsvn= val;
 			++flag_min_isvsvn;
@@ -364,14 +332,22 @@ int main(int argc, char *argv[])
 			config.user_agent= strdup(optarg);
 			if ( config.user_agent == NULL ) {
 				perror("malloc");
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			break;
 
 		case 'i':
 			if (strlen(optarg) != IAS_SUBSCRIPTION_KEY_SIZE) {
 				eprintf("IAS Subscription Key must be %d-byte hex string\n",IAS_SUBSCRIPTION_KEY_SIZE);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 
 			strncpy((char *) config.pri_subscription_key, optarg, IAS_SUBSCRIPTION_KEY_SIZE);
@@ -382,7 +358,11 @@ int main(int argc, char *argv[])
 			if (strlen(optarg) != IAS_SUBSCRIPTION_KEY_SIZE) {
 				eprintf("IAS Secondary Subscription Key must be %d-byte hex string\n",
 				IAS_SUBSCRIPTION_KEY_SIZE);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 
 			strncpy((char *) config.sec_subscription_key, optarg, IAS_SUBSCRIPTION_KEY_SIZE);
@@ -393,7 +373,11 @@ int main(int argc, char *argv[])
 			if (!key_load(&config.service_private_key, optarg, KEY_PRIVATE)) {
 				crypto_perror("key_load");
 				eprintf("%s: could not load EC private key\n", optarg);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			break;
 
@@ -405,7 +389,11 @@ int main(int argc, char *argv[])
 			if ( flag_noproxy ) usage();
 			if (!get_proxy(&config.proxy_server, &config.proxy_port, optarg)) {
 				eprintf("%s: could not extract proxy info\n", optarg);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			// Break the URL into host and port. This is a simplistic algorithm.
 			break;
@@ -417,18 +405,30 @@ int main(int argc, char *argv[])
 
 				eprintf("version must be between %d and %d\n",
 					IAS_MIN_VERSION, IAS_MAX_VERSION);
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			break;
 
 		case 's':
 			if (strlen(optarg) < 32) {
 				eprintf("SPID must be 32-byte hex string\n");
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			if (!from_hexstring((unsigned char *)&config.spid, (unsigned char *)optarg, 16)) {
 				eprintf("SPID must be 32-byte hex string\n");
-				return 1;
+
+				// IWATA
+				// return 1;
+				msgio = NULL;
+				return -1;
 			}
 			++flag_spid;
 			break;
@@ -468,7 +468,11 @@ int main(int argc, char *argv[])
 		port= strdup(DEFAULT_PORT);
 		if ( port == NULL ) {
 			perror("strdup");
-			return 1;
+
+			// IWATA
+			// return 1;
+			msgio = NULL;
+			return -1;
 		}
 	}
 
@@ -503,7 +507,11 @@ int main(int argc, char *argv[])
 		config.ca_bundle= strdup(DEFAULT_CA_BUNDLE);
 		if ( config.ca_bundle == NULL ) {
 			perror("strdup");
-			return 1;
+
+			// IWATA
+			// return 1;
+			msgio = NULL;
+			return -1;
 		}
 		if ( debug ) eprintf("+++ Using default CA bundle %s\n",
 			config.ca_bundle);
@@ -522,7 +530,11 @@ int main(int argc, char *argv[])
 		config.service_private_key = key_private_from_bytes(def_service_private_key);
 		if (config.service_private_key == NULL) {
 			crypto_perror("key_private_from_bytes");
-			return 1;
+
+			// IWATA
+			// return 1;
+			msgio = NULL;
+			return -1;
 		}
 
 	}
@@ -579,7 +591,11 @@ int main(int argc, char *argv[])
 	catch (...) {
 		oops = 1;
 		eprintf("exception while creating IAS request object\n");
-		return 1;
+
+		// IWATA
+		// return 1;
+		msgio = NULL;
+		return -1;
 	}
 
 	if ( flag_noproxy ) ias->proxy_mode(IAS_PROXY_NONE);
@@ -591,6 +607,9 @@ int main(int argc, char *argv[])
 	if ( config.user_agent != NULL ) {
 		if ( ! ias->agent(config.user_agent) ) {
 			eprintf("%s: unknown user agent\n", config.user_agent);
+
+			// IWATA
+			msgio = NULL;
 			return 0;
 		}
 	}
@@ -615,10 +634,15 @@ int main(int argc, char *argv[])
 		msgio= new MsgIO();
 	} else {
 		try {
-			msgio= new MsgIO(NULL, (port == NULL) ? DEFAULT_PORT : port);
+		  // KS
+		  // msgio = new MsgIO(NULL, (port == NULL) ? DEFAULT_PORT : port);
+		  msgio = new MsgIO("localhost", (port == NULL) ? DEFAULT_PORT : port);		  
 		}
 		catch(...) {
-			return 1;
+		  // IWATA
+		  // return 1;
+		  msgio = NULL;
+		  return -1;
 		}
 	}
 
@@ -630,8 +654,8 @@ int main(int argc, char *argv[])
 	 */
 
 	sigemptyset(&sact.sa_mask);
-	sact.sa_flags= 0;
-	sact.sa_handler= &cleanup_and_exit;
+	sact.sa_flags = 0;
+	sact.sa_handler = &cleanup_and_exit;
 
 	if ( sigaction(SIGHUP, &sact, NULL) == -1 ) perror("sigaction: SIGHUP");
 	if ( sigaction(SIGINT, &sact, NULL) == -1 ) perror("sigaction: SIGHUP");
@@ -641,59 +665,67 @@ int main(int argc, char *argv[])
 
  	/* If we're running in server mode, we'll block here.  */
 
-	while ( msgio->server_loop() ) {
-		ra_session_t session;
-		sgx_ra_msg1_t msg1;
-		sgx_ra_msg2_t msg2;
-		ra_msg4_t msg4;
-
-		memset(&session, 0, sizeof(ra_session_t));
-
-		/* Read message 0 and 1, then generate message 2 */
-
-		if ( ! process_msg01(msgio, ias, &msg1, &msg2, &sigrl, &config,
-			&session) ) {
-
-			eprintf("error processing msg1\n");
-			goto disconnect;
-		}
-
-		/* Send message 2 */
-
-		/*
-	 	* sgx_ra_msg2_t is a struct with a flexible array member at the
-	 	* end (defined as uint8_t sig_rl[]). We could go to all the 
-	 	* trouble of building a byte array large enough to hold the
-	 	* entire struct and then cast it as (sgx_ra_msg2_t) but that's
-	 	* a lot of work for no gain when we can just send the fixed 
-	 	* portion and the array portion by hand.
-	 	*/
-
-		dividerWithText(stderr, "Copy/Paste Msg2 Below to Client");
-		dividerWithText(fplog, "Msg2 (send to Client)");
-
-		msgio->send_partial((void *) &msg2, sizeof(sgx_ra_msg2_t));
-		fsend_msg_partial(fplog, (void *) &msg2, sizeof(sgx_ra_msg2_t));
-
-		msgio->send(&msg2.sig_rl, msg2.sig_rl_size);
-		fsend_msg(fplog, &msg2.sig_rl, msg2.sig_rl_size);
-
-		edivider();
-
-		/* Read message 3, and generate message 4 */
-
-		if ( ! process_msg3(msgio, ias, &msg1, &msg4, &config, &session) ) {
-			eprintf("error processing msg3\n");
-			goto disconnect;
-		}
-
-disconnect:
-		msgio->disconnect();
+	//KS	while ( msgio->server_loop() ) {
+	// IWATA  ra_session_t session;
+	sgx_ra_msg1_t msg1;
+	sgx_ra_msg2_t msg2;
+	ra_msg4_t msg4;
+	
+	memset(&session, 0, sizeof(ra_session_t));
+	
+	/* Read message 0 and 1, then generate message 2 */
+	
+	if ( ! process_msg01(msgio, ias, &msg1, &msg2, &sigrl, &config,
+			     &session) ) {
+	  
+	  eprintf("error processing msg1\n");
+	  
+	  // IWATA
+	  // goto disconnect;
+	  return -2;
 	}
+	
+	/* Send message 2 */
+	
+	/*
+	 * sgx_ra_msg2_t is a struct with a flexible array member at the
+	 * end (defined as uint8_t sig_rl[]). We could go to all the 
+	 * trouble of building a byte array large enough to hold the
+	 * entire struct and then cast it as (sgx_ra_msg2_t) but that's
+	 * a lot of work for no gain when we can just send the fixed 
+	 * portion and the array portion by hand.
+	 */
+	
+	dividerWithText(stderr, "Copy/Paste Msg2 Below to Client");
+	dividerWithText(fplog, "Msg2 (send to Client)");
+	
+	msgio->send_partial((void *) &msg2, sizeof(sgx_ra_msg2_t));
+	fsend_msg_partial(fplog, (void *) &msg2, sizeof(sgx_ra_msg2_t));
+	
+	msgio->send(&msg2.sig_rl, msg2.sig_rl_size);
+	fsend_msg(fplog, &msg2.sig_rl, msg2.sig_rl_size);
+	
+	edivider();
+	
+	/* Read message 3, and generate message 4 */
+	
+	if ( ! process_msg3(msgio, ias, &msg1, &msg4, &config, &session) ) {
+	  eprintf("error processing msg3\n");
+	  
+	  // IWATA
+	  // goto disconnect;
+	  return -2;	  
+	}
+	
+	// IWATA
+	// disconnect:
+	//KS msgio->disconnect();
+	//KS while end	}
 
-	crypto_destroy();
+	
+	// IWATA  crypto_destroy();
 
-	return 0;
+	return 1;
 }
 
 int process_msg3 (MsgIO *msgio, IAS_Connection *ias, sgx_ra_msg1_t *msg1,
@@ -755,11 +787,11 @@ int process_msg3 (MsgIO *msgio, IAS_Connection *ias, sgx_ra_msg1_t *msg1,
 	if ( debug ) {
 		eprintf("+++ Verifying msg3.g_a matches msg1.g_a\n");
 		eprintf("msg1.g_a.gx = %s\n",
-			hexstring(&msg1->g_a.gx, sizeof(msg1->g_a.gx)));
+			hexstring(msg3->g_a.gx, sizeof(msg1->g_a.gx)));
 		eprintf("msg1.g_a.gy = %s\n",
-			hexstring(&msg1->g_a.gy, sizeof(msg1->g_a.gy)));
+			hexstring(&msg3->g_a.gy, sizeof(msg1->g_a.gy)));
 		eprintf("msg3.g_a.gx = %s\n",
-			hexstring(&msg3->g_a.gx, sizeof(msg3->g_a.gx)));
+			hexstring(msg3->g_a.gx, sizeof(msg3->g_a.gx)));
 		eprintf("msg3.g_a.gy = %s\n",
 			hexstring(&msg3->g_a.gy, sizeof(msg3->g_a.gy)));
 	}
@@ -979,6 +1011,10 @@ int process_msg3 (MsgIO *msgio, IAS_Connection *ias, sgx_ra_msg1_t *msg1,
 		 * secret between us and the client.
 		 */
 
+		//KS add
+		msg4->status = Trusted;
+		//KS add_end
+
 		if ( msg4->status == Trusted ) {
 			unsigned char hashmk[32], hashsk[32];
 
@@ -1000,6 +1036,43 @@ int process_msg3 (MsgIO *msgio, IAS_Connection *ias, sgx_ra_msg1_t *msg1,
 				eprintf("SHA256(SK) = %s\n", hexstring(hashsk, 32));
 			}
 		}
+
+		// IWATA
+		/**
+		//KS add
+		// Send ID & pwhash
+		msgio->send((void *) "1", 1);
+		sleep(1);
+		msgio->send((void *) "aaa", 3);
+		sleep(1);
+		  
+		//encrypt AES KEY, Here we suppose that the user_key is given.
+		uint8_t user_key[16] = {10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10};
+		uint8_t enc_user_key[16];
+		uint8_t iv[12]  = {0,1,2,3,4,5,6,7,8,9,10,11};
+		sample_aes_gcm_128bit_tag_t tag;
+
+		sample_status_t ret = sample_rijndael128GCM_encrypt(&session->sk,
+                        user_key,
+                        16,
+                        enc_user_key,
+                        iv,
+                        12,
+                        NULL,
+                        0,
+                        &tag);
+		//send key, iv, mac
+		msgio->send((void *) enc_user_key, sizeof(enc_user_key));
+		eprintf("SEND = %s, size = %d\n", hexstring(enc_user_key, 16), sizeof(enc_user_key));
+		sleep(1);
+		msgio->send((void *) iv, sizeof(iv));
+		eprintf("SEND = %s, size = %d\n", hexstring(iv, 12), sizeof(iv));		
+		sleep(1);
+		msgio->send((void *) &tag, sizeof(tag));
+		eprintf("SEND = %s, size = %d\n", hexstring(&tag, 16), sizeof(tag));
+		
+		//KS add_end
+		**/
 
 	} else {
 		eprintf("Attestation failed\n");

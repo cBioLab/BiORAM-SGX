@@ -108,7 +108,9 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am__objects_1 =
 am_Enclave_OBJECTS = Enclave_t.$(OBJEXT) Enclave.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_1)
+	$(am__objects_1) $(am__objects_1) MLfunc_SGX.$(OBJEXT) \
+	ObliviousRAM_SGX.$(OBJEXT) SGX_Sort.$(OBJEXT) \
+	SGX_Math.$(OBJEXT)
 Enclave_OBJECTS = $(am_Enclave_OBJECTS)
 Enclave_DEPENDENCIES =
 @ENCLAVE_RELEASE_SIGN_FALSE@nodist_signed_enclave_debug_OBJECTS =  \
@@ -319,8 +321,12 @@ SGX_EDGER8R = $(SGXSDK_BINDIR)/sgx_edger8r
 SGX_SIGN = $(SGXSDK_BINDIR)/sgx_sign
 SGXSSL_BINDIR = @SGXSSL_BINDIR@
 AM_CFLAGS = @SGX_ENCLAVE_CFLAGS@
-AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -I..
-AM_CXXFLAGS = @SGX_ENCLAVE_CXXFLAGS@ @SGX_ENCLAVE_CFLAGS@
+
+# IWATA
+# AM_CPPFLAGS = -I$(SGXSDK_INCDIR) -I$(SGXSDK_INCDIR)/tlibc -I$(SGXSDK_INCDIR)/libcxx -I..
+AM_CPPFLAGS = @SGX_ENCLAVE_CPPFLAGS@ -I$(SGXSDK_INCDIR)/libcxx -I..
+# AM_CXXFLAGS = -nostdinc++ -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector -nostdinc -fvisibility=hidden -fpie -ffunction-sections -fdata-sections -fstack-protector
+AM_CXXFLAGS = @SGX_ENCLAVE_CXXFLAGS@ @SGX_ENCLAVE_CFLAGS@ -std=c++11
 AM_LDFLAGS = @SGX_ENCLAVE_LDFLAGS@
 CLEANFILES = $(ENCLAVE).signed.so $(ENCLAVE)_t.c $(ENCLAVE)_t.h
 @ENCLAVE_RELEASE_SIGN_TRUE@nodist_signed_enclave_rel_SOURCES = signed_enclave_rel.c
@@ -329,8 +335,12 @@ SGX_EDGER8R_FLAGS = --search-path ..
 ENCLAVE = Enclave
 ENCLAVE_CONFIG = $(ENCLAVE).config.xml
 ENCLAVE_KEY = $(ENCLAVE)_private.pem
+
+# IWATA
+# Enclave_SOURCES = Enclave_t.c Enclave_t.h Enclave.cpp \
+#	$(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
 Enclave_SOURCES = Enclave_t.c Enclave_t.h Enclave.cpp \
-	$(ENCLAVE_KEY) $(ENCLAVE_CONFIG)
+	$(ENCLAVE_KEY) $(ENCLAVE_CONFIG) MLfunc_SGX.cpp ObliviousRAM_SGX.cpp SGX_Sort.cpp SGX_Math.cpp
 
 Enclave_LDADD = @SGX_ENCLAVE_LDADD@
 SGX_EXTRA_TLIBS = -lsgx_tkey_exchange -lsgx_tcxx
@@ -423,6 +433,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Enclave.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Enclave_t.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MLfunc_SGX.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ObliviousRAM_SGX.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SGX_Math.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SGX_Sort.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signed_enclave_debug.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/signed_enclave_rel.Po@am__quote@
 

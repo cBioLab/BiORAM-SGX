@@ -30,15 +30,14 @@ enclave {
 #ifndef _WIN32
 		include "config.h"
 #endif
+		public void cp_source([in, size=len]void *ptr, size_t len);
 
 		public sgx_status_t get_report([out] sgx_report_t *report,
-			[in] sgx_target_info_t *target_info);
+				    	       [in] sgx_target_info_t *target_info);
 
-#ifdef _WIN32
 		public size_t get_pse_manifest_size();
 
 		public sgx_status_t get_pse_manifest([out, count=sz] char *buf, size_t sz);
-#endif
 
 		public sgx_status_t enclave_ra_init(sgx_ec256_public_t key, int b_pse,
 			[out] sgx_ra_context_t *ctx, [out] sgx_status_t *pse_status);
@@ -52,12 +51,146 @@ enclave {
 
 		public sgx_status_t enclave_ra_close(sgx_ra_context_t ctx);
 
+
+		// ***** ↓↓↓ EDIT HERE ↓↓↓ *****
+		
+		public sgx_status_t enclave_get_user_key([in, size = enc_user_key_len]unsigned char *enc_user_key,
+		       		    			 size_t enc_user_key_len,
+							 [in, size = iv_len]unsigned char* iv,
+		       					 size_t iv_len,
+		       					 [in]sgx_aes_gcm_128bit_tag_t *tag);
+
+		public sgx_status_t JSinterpreter([in, size = jscode_clump_len]uint8_t *jscode_clump, int jscode_clump_len,
+		       		    		  [in, size = AESkey_clump_len]uint8_t *AESkey_clump, int AESkey_clump_len);
+
+		public sgx_status_t GetUserID_pwhash([in, size = userID_clump_len]uint8_t* userID_clump, int userID_clump_len,
+						     [in, out, size = userID_len]uint8_t* userID, int userID_len,
+						     [in, size = passwd_clump_len]uint8_t* passwd_clump, int passwd_clump_len,
+						     [in, out, size = 32]uint8_t* pwhash);
+
+		public sgx_status_t SendMessage([in, size = msg_len]const char* msg_str, int msg_len);
+
+		// ***** ↑↑↑ EDIT HERE ↑↑↑ *****
 	};
 
 	untrusted {
 #ifndef _WIN32
 		include "config.h"
 #endif
+
+		// ***** ↓↓↓ EDIT HERE ↓↓↓ *****
+		
+		void ocall_print_string([in, string] const char *str);
+
+		void cp_source_ocall([out, size=len]void *ptr, size_t len);
+	
+		void set_JS_Fname([in, string]const char *str);
+
+		void print_error_message(sgx_status_t ret);
+
+		void OCALL_print([in, string]const char *str);
+
+		void OCALL_cerror([in, string]const char *str);
+
+		void OCALL_print_uint8_t([in, size=len]uint8_t *str, size_t len);
+	
+		void OCALL_print_int(int val);
+
+		void OCALL_print_double(double val);
+
+		void OCALL_DirectoryCheck([in, size=filepath_len]const char *filepath, size_t filepath_len);
+
+		int OCALL_GetFileNumber([in, size=path_len]const char* path, size_t path_len,
+		    			[in, size=extension_len]const char* extension, size_t extension_len);
+
+		int OCALL_GetFilenameLength(int num);
+
+		void OCALL_GetFilename([in, out, size=filename_len]uint8_t *filename, size_t filename_len, int num);
+	
+		int OCALL_GetFileLength([in, size=filename_len]uint8_t *filename, size_t filename_len);
+
+		void OCALL_DeleteFilepaths();
+
+		void OCALL_LoadFile([in, size=filename_len]uint8_t *filename, size_t filename_len,
+   		     		    [in, out, size=data_len]uint8_t *data, size_t data_len);
+
+		void OCALL_LoadFile_char([in, size=filename_len]const char *filename, size_t filename_len,
+             		         	 [in, out, size=data_len]uint8_t *data, size_t data_len);
+
+		void OCALL_LoadMetadata([in, out, size=32]int *Z_blocks, [in, out, size=32]int *data_num,
+	     				[in, size=filename_len]const char *filename, size_t filename_len);
+
+		void OCALL_SaveFile([in, size=filename_len]uint8_t *filename, size_t filename_len,
+	     		    	    [in, size=data_len]uint8_t *data, size_t data_len);
+
+		void OCALL_SaveFile_add([in, size=filename_len]uint8_t *filename, size_t filename_len,
+	     				[in, size=data_len]uint8_t *data, size_t data_len);
+
+		void OCALL_SaveMetadata(int Z_blocks, int data_num,
+	     				[in, size=filename_len]const char *filename, size_t filename_len);
+
+		int OCALL_GetLengthOfFilenames([in, size=path_len]const char* path, size_t path_len,
+	    			       	       [in, size=extension_len]const char* extension, size_t extension_len);
+
+		void OCALL_GetFilenames([in, out, size=files_len]uint8_t* filenames, size_t files_len,
+	     				[in, size=path_len]const char* path, size_t path_len,
+	    		        	[in, size=extension_len]const char* extension, size_t extension_len);
+
+		void OCALL_SendMessage([in, size=msg_len]uint8_t* ret_msg, int msg_len);
+
+		void OCALL_chrono_start();
+
+		double OCALL_chrono_end();
+		
+		void OCALL_chrono_Total_start();
+	
+		void OCALL_chrono_Total_end();
+	
+		void OCALL_chrono_AESenc_start();
+
+		void OCALL_chrono_AESenc_end();
+
+		void OCALL_chrono_AESdec_start();
+
+		void OCALL_chrono_AESdec_end();
+
+		void OCALL_chrono_FileIn_start();
+
+		void OCALL_chrono_FileIn_end();
+
+		void OCALL_chrono_FileOut_start();
+
+		void OCALL_chrono_FileOut_end();
+
+		void OCALL_chrono_GetPath_start();
+
+		void OCALL_chrono_GetPath_end();
+
+		void OCALL_chrono_WritePath_start();
+
+		void OCALL_chrono_WritePath_end();
+
+		void OCALL_chrono_Check_start();
+
+		void OCALL_chrono_Check_end();
+
+		void OCALL_ShowMeasuredTime();
+
+		void OCALL_FS_start();
+
+		void OCALL_FS_end();
+
+		void OCALL_ML_start();
+
+		void OCALL_ML_end();
+
+		void OCALL_res_start();
+
+		void OCALL_res_end();
+
+		void OCALL_ExpResult();
+
+		// ***** ↑↑↑ EDIT HERE ↑↑↑ *****
 	};
 };
 
