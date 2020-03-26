@@ -55,6 +55,7 @@ char *mystrdup(const char* input)
 }
 #define strdup mystrdup
 
+/*
 class myostringstream
 {
 public:
@@ -66,6 +67,35 @@ public:
   myostringstream& operator<< (const int test2){return *this;}
 };
 #define ostringstream myostringstream
+*/
+class myostringstream
+{
+  string str_value;
+  
+public:
+  string str(){
+    return this->str_value;
+  }
+ 
+  myostringstream& operator<< (const void *text){
+    const char* s = (const char*)text;
+    this->str_value.append(s);
+  }
+  myostringstream& operator<< (const string& s){
+    this->str_value.append(s);
+  }
+  myostringstream& operator<< (const char *s){
+    this->str_value.append(s);
+  }
+  myostringstream& operator<< (char c){
+    this->str_value.push_back(c);
+  }
+  myostringstream& operator<< (const int num){
+    this->str_value.append(to_string(num));
+  }
+};
+#define ostringstream myostringstream
+
 
 /* 
  * printf: 
@@ -465,39 +495,16 @@ void ML_Fisher(CScriptVar *c, void*)
   string cout = "";
 
 
-  OCALL_FS_start();
-  
   // Get data from ORAM Tree.
-  OCALL_print("Get Data from nation_1...");
   ORAM_GetData_Fisher(chrID, nation_1, topdir, dirname_1, position, ContingencyTable[0]);
-  OCALL_print("Get Data from nation_2...");
   ORAM_GetData_Fisher(chrID, nation_2, topdir, dirname_2, position, ContingencyTable[1]);
 
-  OCALL_FS_end();
-  
-  /*
-  for(int i=0; i<2; i++){
-    cout = to_string(ContingencyTable[i][0]) + ", " + to_string(ContingencyTable[i][1]) + ", " + to_string(ContingencyTable[i][2]);
-    OCALL_print(cout.c_str());
-  }
-  */
 
-  OCALL_ML_start();
-
-  
   // Calculate Fisher's exact test.
   FisherExactTest(ContingencyTable, p_value);
-
-  OCALL_ML_end();
   
 
-  double ret_p_value = p_value[0] * pow(10, p_value[1]);
-  
-  cout  = "Position: " + to_string(position) + ", nation: " + nation_1 + ", " + nation_2 + "\n";
-  cout += GREEN_START + "p_value: " + to_string(ret_p_value) + COLOR_END;
-  // OCALL_print(cout.c_str());
-
-  
+  double ret_p_value = p_value[0] * pow(10, p_value[1]);  
   c->getReturnVar()->setDouble(ret_p_value);
 
 
@@ -541,49 +548,25 @@ void ML_LogisticRegression(CScriptVar *c, void*)
   // Initialization
   vector<int> position;
   SplitStringInt(position, position_list, ',');
-  // for(size_t i=0; i<position.size(); i++)  OCALL_print_int(position[i]);
 
+  
   int M = position.size() + 1;  // row: position size.  col: data num.
   vector< vector<double> > x;
   vector<int> y;
   vector<double> theta;
   string cout = "";
 
-  
-
-  OCALL_FS_start();
 
   // Get data from ORAM Tree.
-  OCALL_print("Get Data from nations...");
   ORAM_GetData_LR(chrID, nation_1, dirname_1, nation_2, dirname_2, topdir, position, x, y);
   
-  OCALL_FS_end();
-
   
   for(size_t i=0; i<x.size()-1; i++)  assert(x[i].size() == x[i + 1].size());
   assert(x[0].size() == y.size());
-  /*
-  printf("   data row: %d\n", (int)x.size());
-  printf("data column: %d\n", (int)x[0].size());
-  printf("    TF data: %d\n", (int)y.size());
-  */
 
-  
-  OCALL_ML_start();
   
   // Calculate Logistic Regression.
-  OCALL_print("Calculate Logistic Regression...");
   LogisticRegression(x, y, theta, iteration, regularization);
-
-  OCALL_ML_end();
-  
-
-  /*
-  cout = "nation: " + nation_1 + ", " + nation_2 + "\ntheta: ";
-  for(size_t i=0; i<theta.size(); i++)  cout += to_string(theta[i]) + ", ";
-  OCALL_print(cout.c_str());
-  */
-
 
   // return theta as js retval.
   CScriptVar *result = c->getReturnVar();
@@ -642,23 +625,11 @@ void ML_PCA(CScriptVar *c, void*)
   
 
 
-  OCALL_FS_start();
-  
   // Get data from ORAM Tree.
-  OCALL_print("Get Data from nation...");
   ORAM_GetData_PCA(chrID, nation, topdir, dirname, position, x);
-
-  OCALL_FS_end();
-
 
   assert((int)x.size() > n_component);
   for(size_t i=0; i<x.size()-1; i++)  assert(x[i].size() == x[i + 1].size());
-
-  /*
-  printf("   data row: %d\n", (int)x.size());
-  printf("data column: %d\n", (int)x[0].size());
-  */
-
   
   
   // [PCA_data] row: data num.  col: position size.
@@ -666,26 +637,10 @@ void ML_PCA(CScriptVar *c, void*)
   vector< vector<double> > PCA_data(x[0].size());
 
   
-  OCALL_ML_start();
-  
   // Calculate PCA.
-  OCALL_print("Calculate PCA...");
   PCA(x, PCA_data, n_component);
 
-  OCALL_ML_end();
-
-
-  /*
-  cout = "========== PCA data ==========\n";
-  for(size_t i=0; i<PCA_data.size(); i++){
-    for(size_t j=0; j<PCA_data[0].size(); j++)
-      cout += to_string(PCA_data[i][j]) + ", ";
-    cout += "\n";
-  }
-  OCALL_print(cout.c_str());
-  */
-
-
+  
   // get retval.
   int row_length = 0;
   int col_length = 0;
@@ -1153,7 +1108,6 @@ sgx_status_t JSinterpreter(uint8_t *jscode_clump, int jscode_clump_len, uint8_t 
     jscode[i] = jscode_uint8t[i];
 
   delete jscode_uint8t;
-  // OCALL_print(jscode.c_str());
 
 
   // Preparation for JS interpreter.
@@ -1166,33 +1120,27 @@ sgx_status_t JSinterpreter(uint8_t *jscode_clump, int jscode_clump_len, uint8_t 
   
   // Execute JS.
   int line_num = 0;
-  
-  while(jscode.length() > 0){
-    line_num++;
-    string inst = jscode.substr(0, jscode.find("\n") + 1);
-    jscode = jscode.substr(jscode.find("\n") + 1);
 
-    try{
-      js->execute(inst.c_str());
-    }
-    catch(CScriptException *e){
-      string cerr = "STDERR\n-----\nERROR: " + e->text + "\nL" + to_string(line_num) + ": " + inst + "-----";
-      SendMessage(cerr.c_str(), cerr.length());
+  try{
+    js->execute(jscode.c_str());
+  }
+  catch(CScriptException *e){
+    string cerr = "STDERR\n-----\nERROR: " + e->text;
+    SendMessage(cerr.c_str(), cerr.length());
 
       
-      string().swap(cerr);
+    string().swap(cerr);
 
-      // for security reason
-      memset(AESkey, 0x00, AESkey_len);
-      delete AESkey;
+    // for security reason
+    memset(AESkey, 0x00, AESkey_len);
+    delete AESkey;
       
-      string().swap(jscode);
-      
-      return SGX_ERROR_UNEXPECTED;
-    }
+    string().swap(jscode);
+    
+    return SGX_ERROR_UNEXPECTED;
   }
 
-
+  
   // for security reason
   memset(AESkey, 0x00, AESkey_len);
   delete AESkey;
@@ -1249,7 +1197,6 @@ sgx_status_t GetUserID_pwhash(uint8_t *userID_clump, int userID_clump_len, uint8
 
   // convert passwd -> SHA256 hash.
   status = sgx_sha256_msg(passwd, passwd_len, (sgx_sha256_hash_t*)pwhash);
-  // print_hexstring(pwhash, 32);
 
   
   return SGX_SUCCESS;

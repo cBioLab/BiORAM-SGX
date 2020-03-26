@@ -1806,9 +1806,7 @@ void CreateORAMTree(ORAM_PositionMap* p_map, int pmap_size, ORAM_Stash* stash, i
   ORAM_Search search;
   InitializeORAMSearch(search);
    
-  
-  OCALL_print("Create ORAM Tree...");
-  
+    
   // Creaate dummy ORAM Tree at first.
   for(int i=0; i<N_node * Z_blocks; i++){
     cout = "Create " + to_string((int)i + 1) + "th ORAM tree...";
@@ -1823,8 +1821,7 @@ void CreateORAMTree(ORAM_PositionMap* p_map, int pmap_size, ORAM_Stash* stash, i
   
   for(size_t i=0; i<pmap_size; i++){
     cout = to_string((int)i + 1) + "th position map.";
-    // OCALL_print(cout.c_str());
-    if(i % 10000 == 0)  OCALL_print(cout.c_str());
+    // if(i % 10000 == 0)  OCALL_print(cout.c_str());
     
     // Find vacant Stash. If found, do following procedure.
     stash_vec_num = 0;
@@ -2073,12 +2070,13 @@ void ORAM_initialization(int Z_blocks, string& in_topdir, string& in_dirname,
   ORAM_Stash stash[stash_size] = {};
   
 
+  /*
   cout = GREEN_START + "Init ORAM Tree: " + table_path + COLOR_END;
   OCALL_print(cout.c_str());
   cout = "Data Num: " + to_string(data_num) + ", Node: " + to_string(N_node) +
               ", Z: " + to_string(Z_blocks) +    ", L: " + to_string(L_height);
   OCALL_print(cout.c_str());
-
+  */
   
   
   // Initialize variables.
@@ -2089,50 +2087,34 @@ void ORAM_initialization(int Z_blocks, string& in_topdir, string& in_dirname,
   
   
   // Create AES secret key.
-  cout = "Create AES Secretkey. Store using Sealing...";
-  OCALL_print(cout.c_str());
   CreateAESSecretKey(AES_SK);
 
 
    
   // Create PositionMap.
-  cout = "Create Position Map. ** Element: " + to_string(data_num) + " **";
-  OCALL_print(cout.c_str());
-
   CreatePositionMap(p_map, data_num, L_height);
   
 
 
   
   // Create Stash.
-  cout = "Create Stash Table. ** Element: " + to_string(stash_size) + " **";
-  OCALL_print(cout.c_str());
-
   CreateStash(stash, stash_size);
 
 
 
   
   // Create ORAM Tree from PositionMap.
-  cout = "Create ORAM Tree. ** Node: " + to_string(N_node) + ", Z: " + to_string(Z_blocks) +
-                          ", height: " + to_string(L_height + 1) + " **";
-  OCALL_print(cout.c_str());
-
   CreateORAMTree(p_map, data_num, stash, stash_size, N_node, L_height, Z_blocks, table_path, user_aes_key, AES_SK);
 
 
 
   // Store tables and AES SK.
   cout = "SUCCEEDED: Create (0)AES Secretkey,  (1)Position Map, (2)Stash Table, and (3)ORAM Tree...";
-  OCALL_print(cout.c_str());
+  // OCALL_print(cout.c_str());
   
-  OCALL_print("Save PositionMap...");
   SavePositionMap(table_path, p_map_file, p_map, data_num, AES_SK);
-  OCALL_print("Save Stash...");
   SaveStash(table_path, stash, stash_size, AES_SK);
-  OCALL_print("Save AES SK...");
   SaveAESSecretKey(AES_SK, AES_keyfile);
-  OCALL_print("Save Metadata...");
   OCALL_SaveMetadata(Z_blocks, data_num, metadata_file.c_str(), metadata_file.length() + 1);
   
 
