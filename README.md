@@ -466,7 +466,7 @@ Licenses of external libraries are listed as follows.
 
 
 # Acknowledgement
-During publication, we would like to thank [xxxxxx] for discussing and lending his expertise about Intel SGX.
+We thank Ao Sakurai for fruitful discussions.
 
 
 
