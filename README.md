@@ -466,7 +466,7 @@ Licenses of external libraries are listed as follows.
 
 
 # Acknowledgement
-We thank Ao Sakurai for fruitful discussions.
+We thank Mr.Ao Sakurai for fruitful discussions.
 
 
 
